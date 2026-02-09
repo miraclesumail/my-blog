@@ -5,6 +5,14 @@ pubDate: 'Jan 03 2026'
 heroImage: '../../assets/blog-placeholder-4.jpg'
 ---
 
+<style>
+    .small-code pre {
+    font-size: 13px !important;  /* 强制覆盖默认大小 */
+    line-height: 1.5 !important; /* 调整行高，让排版更紧凑 */
+    padding: 1rem !important;    /* 缩小边距（可选） */
+  }
+</style>
+
 ### 📋 <a name="table">Table of Contents</a>
 
 1. 🤖 [自定义颜色和距离](#introduction)
@@ -17,6 +25,8 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 8. 🚀 [使用变体动态编写样式](#variant)
 
 #### <a name="introduction">🤖 自定义颜色和距离</a>
+
+<div class="small-code">
 
 ```css
 @theme {
@@ -48,7 +58,11 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 }
 ```
 
+</div>
+
 注意在 Tailwind v4 中，没有一个所谓的“基础系数变量”（比如 base-unit）能让你改一个数字就自动更新所有间距。所有的间距（1, 2, 3...）都是独立的 CSS 变量。
+
+<div class="small-code">
 
 ```html
 <!-- 使用 bg-primary -->
@@ -64,8 +78,11 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
   <div>Item 3</div>
 </div>
 ```
+</div>
 
 #### <a name="tech-stack">🤖 添加自定义类名</a>
+
+<div class="small-code">
 
 ```css
 @import 'tailwindcss';
@@ -90,10 +107,14 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
   }
 }
 ```
+</div>
+
 
 直接在div中使用类名btn-primary-custom
 
 #### <a name="features">🤖 悬浮聚焦状态改变子元素</a>
+
+<div class="small-code">
 
 ```html
 <ul role="list">
@@ -109,9 +130,14 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 </ul>
 ```
 
+</div>
+
+
 对于内嵌的hover可以采用命名group实现
 
 #### <a name="quick-start">🔋 兄弟元素状态改变如何影响</a>
+
+<div class="small-code">
 
 ```html
 <form>
@@ -124,9 +150,14 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 </form>
 ```
 
+</div>
+
+
 注意peer-focus、peer-disabled同样适用
 
 #### <a name="snippets">🔋 子元素根据父容器宽度展示</a>
+
+<div class="small-code">
 
 ```html
 <div class="@container">
@@ -135,10 +166,14 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
   <div class="flex-col @min-[300px]:flex-row"></div>
 </div>
 ```
+</div>
+
 
 当父元素的宽度超过md时，展示为flex-row
 
 #### <a name="links">🔗 根据js变量动态展示类名</a>
+
+<div class="small-code">
 
 ```html
 <!-- 这种写法不生效 -->
@@ -146,6 +181,10 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 <!-- works -->
 <div class="{{ error ? 'text-red-600' : 'text-green-600' }}"></div>
 ```
+</div>
+
+
+<div class="small-code">
 
 ```jsx
 /** 这种写法不生效 */
@@ -161,10 +200,14 @@ function Button({ color, children }) {
   return <button className={`${colorVariants[color]} ...`}>{children}</button>;
 }
 ```
+</div>
+
 
 tailwind引擎不会识别变量字符串类名
 
 #### <a name="more">🚀 使用utility自定义类名</a>
+
+<div class="small-code">
 
 ```css
 @theme {
@@ -189,6 +232,10 @@ tailwind引擎不会识别变量字符串类名
   opacity: --value(--opacity-*, [percentage]);
 }
 ```
+</div>
+
+
+<div class="small-code">
 
 ```html
 <!-- 生成 CSS: opacity: 50%; -->
@@ -199,8 +246,12 @@ tailwind引擎不会识别变量字符串类名
 <!-- 生成 CSS: opacity: 33.3%; -->
 <div class="opacity-[33.3%]">精确透明度</div>
 ```
+</div>
+
 
 #### <a name="variant">🚀 使用变体动态编写样式</a>
+
+<div class="small-code">
 
 ```jsx
 import { cva } from 'class-variance-authority';
@@ -243,3 +294,5 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 // 在页面使用
 <Card variant={'outline'} size={'lg'} className="custom">
 ```
+</div>
+

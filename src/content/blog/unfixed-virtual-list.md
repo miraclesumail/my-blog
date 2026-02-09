@@ -5,6 +5,14 @@ pubDate: 'Jan 01 2026'
 heroImage: '../../assets/blog-placeholder-4.jpg'
 ---
 
+<style>
+    .small-code pre {
+    font-size: 13px !important;  /* 强制覆盖默认大小 */
+    line-height: 1.5 !important; /* 调整行高，让排版更紧凑 */
+    padding: 1rem !important;    /* 缩小边距（可选） */
+  }
+</style>
+
 #### 如何实现不固定高度的虚拟列表
 
 ##### 1.具体思路如下
@@ -16,6 +24,8 @@ heroImage: '../../assets/blog-placeholder-4.jpg'
 5.  **计算滚动容器的总高度和每个item的位移**：容器的总高度是个动态值, 每次滚动触发更新startIndex的值时，都有可能改变总高度，总高度实际就等于positionsRef最后一个元素的bottom值, 然后visibleData中每个item直接按照计算好的top设置translateY=top即可
 
 ##### 2.初始化positionsRef
+
+<div class="small-code">
 
 ```js
 // 展示列表的数据源
@@ -31,10 +41,14 @@ const positionsRef = useRef(
   })),
 );
 ```
+</div>
+
 
 positionsRef记录了初始化所有item的位置信息
 
 ##### 3.根据scrollTop计算出startIndex和endIndex
+
+<div class="small-code">
 
 ```js
 // 假设容器高度为600
@@ -67,10 +81,14 @@ const endIndex = Math.min(
   const renderStartIndex = Math.max(0, startIndex! - BUFFER_COUNT);
   const renderEndIndex = Math.min(listData.length - 1, endIndex + BUFFER_COUNT);
 ```
+</div>
+
 
 实际渲染的区间就是[renderStartIndex, renderEndIndex]
 
 ##### 4.渲染visibleData获取itemRefs
+
+<div class="small-code">
 
 ```js
 // 测量 DOM 节点的引用 这个很重要用于更正positionsRef
@@ -111,10 +129,14 @@ const Container = () => {
   );
 };
 ```
+</div>
+
 
 上面获取到了visibleData渲染后每个真实item，接下来用itemRefs去更新positionsRef
 
 ##### 5.通过itemRefs获取每个item元素计算更新位置信息
+
+<div class="small-code">
 
 ```js
 //  用于强制更新组件（当高度修正后）
@@ -166,10 +188,14 @@ function updatePositionsRef() {
   forceUpdate({});
 }
 ```
+</div>
+
 
 这一步最关键，决定了不固定item是否正常渲染
 
 ##### 6.修改jsx返回的render内容
+
+<div class="small-code">
 
 ```js
 // 计算总高度（用于撑开滚动条）
@@ -196,6 +222,8 @@ const Content = () => {
   );
 };
 ```
+</div>
+
 
 ##### 至此已实现全部逻辑
 
