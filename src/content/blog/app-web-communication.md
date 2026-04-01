@@ -27,6 +27,7 @@ heroImage: '../../assets/blog-placeholder-3.jpg'
 2. ⚙️ [rn里面oc添加原生模块](#module)
 3. 🔋 [安卓端kotin添加相同模块](#android)
 4. 🤸 [swift添加可调用模块](#swift)
+5. 🚀 [ios和rn的消息传递](#message)
 
 #### <a name="rn">🤖 rn和web通信</a>
 
@@ -71,11 +72,11 @@ const BridgeWebView = () => {
             // 接收到 Web 初始化完成的信号
             setIsWebReady(true);
             break;
-            
+
             case 'SHOW_ALERT':
             Alert.alert('来自 Web 的呼唤', message.payload?.text);
             break;
-            
+
             case 'GET_USER_INFO':
             // 模拟 Web 请求获取用户信息，RN 获取后传回给 Web
             const userInfo = { name: '张三', token: 'abc123456' };
@@ -95,10 +96,10 @@ const BridgeWebView = () => {
     <View style={styles.container}>
       {/* 顶部测试按钮：RN 侧主动发消息给 Web */}
       <View style={styles.header}>
-        <Button 
-          title="RN 给 Web 发消息" 
+        <Button
+          title="RN 给 Web 发消息"
           disabled={!isWebReady} // 必须等 Web 准备好再发
-          onPress={() => sendMessageToWeb('CHANGE_COLOR', { color: '#ffeb3b' })} 
+          onPress={() => sendMessageToWeb('CHANGE_COLOR', { color: '#ffeb3b' })}
         />
       </View>
 
@@ -128,53 +129,52 @@ const BridgeWebView = () => {
 <div class="small-code">
 
 ```js
-    /**
-     * 🌟 核心 1：Web 向 RN 发送消息
-     * @param type 消息类型
-     * @param payload 携带的数据
-     */
-    function sendToRN(type, payload = {}) {
-      if (window.ReactNativeWebView) {
-        // 必须序列化成字符串才能传给 RN
-        const message = JSON.stringify({ type, payload });
-        window.ReactNativeWebView.postMessage(message);
-        logMessage(`已发送 [${type}] 给 RN`);
-      } else {
-        logMessage('错误: 不在 React Native 环境中');
-      }
-    }
+/**
+ * 🌟 核心 1：Web 向 RN 发送消息
+ * @param type 消息类型
+ * @param payload 携带的数据
+ */
+function sendToRN(type, payload = {}) {
+  if (window.ReactNativeWebView) {
+    // 必须序列化成字符串才能传给 RN
+    const message = JSON.stringify({ type, payload });
+    window.ReactNativeWebView.postMessage(message);
+    logMessage(`已发送 [${type}] 给 RN`);
+  } else {
+    logMessage('错误: 不在 React Native 环境中');
+  }
+}
 
-    window.addEventListener('message', (event) => {
-      // event.detail 就是 RN 那边传过来的 JSON 对象
-      const message = event.detail; 
+window.addEventListener('message', (event) => {
+  // event.detail 就是 RN 那边传过来的 JSON 对象
+  const message = event.detail;
 
-      // 根据不同的 type 处理业务逻辑 带上前缀更好
-      switch (message.type) {
-        case 'SET_USER_INFO':
-          logMessage(`✨ 解析得到用户名: ${message.payload.name}`);
-          break;
-        case 'CHANGE_COLOR':
-          document.body.style.backgroundColor = message.payload.color;
-          break;
-      }
-      logMessage(`收到 RN 消息: ${JSON.stringify(message)}`);
+  // 根据不同的 type 处理业务逻辑 带上前缀更好
+  switch (message.type) {
+    case 'SET_USER_INFO':
+      logMessage(`✨ 解析得到用户名: ${message.payload.name}`);
+      break;
+    case 'CHANGE_COLOR':
+      document.body.style.backgroundColor = message.payload.color;
+      break;
+  }
+  logMessage(`收到 RN 消息: ${JSON.stringify(message)}`);
+});
 
-    });
+// 页面逻辑：点击按钮触发
+function sendAlertToRN() {
+  sendToRN('SHOW_ALERT', { text: '你好 RN，我是 Web 端！' });
+}
 
-    // 页面逻辑：点击按钮触发
-    function sendAlertToRN() {
-      sendToRN('SHOW_ALERT', { text: '你好 RN，我是 Web 端！' });
-    }
+function requestUserInfo() {
+  sendToRN('GET_USER_INFO');
+}
 
-    function requestUserInfo() {
-      sendToRN('GET_USER_INFO');
-    }
-
-    // 🌟 核心 3 (最佳实践)：Web 页面加载完毕后，主动告诉 RN "我准备好了"
-    // 防止 RN 在 Web JS 还没解析完时就发消息，导致消息丢失
-    window.onload = () => {
-      sendToRN('WEB_READY');
-    };
+// 🌟 核心 3 (最佳实践)：Web 页面加载完毕后，主动告诉 RN "我准备好了"
+// 防止 RN 在 Web JS 还没解析完时就发消息，导致消息丢失
+window.onload = () => {
+  sendToRN('WEB_READY');
+};
 ```
 
 </div>
@@ -193,8 +193,6 @@ const BridgeWebView = () => {
 @end
 
 ```
-
-
 
 </div>
 
@@ -223,7 +221,7 @@ RCT_EXPORT_METHOD(doSomethingWithCallback:(NSString *)name callback:(RCTResponse
 {
   // 模拟一些处理过程
   NSString *result = [NSString stringWithFormat:@"成功处理了: %@", name];
-  
+
   // 回调给 JS 端。通常数组第一个参数是 error 对象，第二个是结果 (类似 Node.js 的 error-first callback)
   callback(@[[NSNull null], result]);
 }
@@ -235,7 +233,7 @@ RCT_EXPORT_METHOD(getDeviceName:(RCTPromiseResolveBlock)resolve
   @try {
     // 调用 iOS 原生 API 获取设备名 (例如 "iPhone 15 Pro")
     NSString *deviceName = [[UIDevice currentDevice] name];
-    
+
     // 成功时，调用 resolve 将字符串传回 JS
     resolve(deviceName);
   } @catch (NSException *exception) {
@@ -264,10 +262,10 @@ RCT_EXPORT_METHOD(doSomethingWithPromise:(NSString *)name
 
 
 ```
+
 </div>
 
 <p>如何在rn里面调用ios定义的模块</p>
-
 
 <div class="small-code">
 
@@ -314,9 +312,7 @@ const handleGetDeviceName = async () => {
 
 </div>
 
-
 #### <a name="android">🤖 安卓端kotin添加相同模块</a>
-
 
 <p>在MainApplication.kt下加入下面代码</p>
 
@@ -376,7 +372,7 @@ class CustomSwiftModule(reactContext: ReactApplicationContext) : ReactContextBas
     @ReactMethod
     fun getDeviceName(successCallback: Promise, failCallback: Promise) {
         try {
-           
+
 
             // 3. 返回结果
             promise.resolve(maxVal)
@@ -388,7 +384,6 @@ class CustomSwiftModule(reactContext: ReactApplicationContext) : ReactContextBas
 ```
 
 </div>
-
 
 <p>CustomPackage里面把CustomModule添加进去</p>
 
@@ -439,7 +434,7 @@ class CustomSwiftModule: NSObject {
     func doSomethingWithPromise(name: String,
                                 resolve: @escaping RCTPromiseResolveBlock,
                                 reject: @escaping RCTPromiseRejectBlock) -> Void {
-        
+
         if name.isEmpty {
             // 失败时的情况：创建一个原生 NSError
             let error = NSError(domain: "com.yourapp.error", code: 400, userInfo: nil)
@@ -450,7 +445,7 @@ class CustomSwiftModule: NSObject {
             resolve(result)
         }
     }
-  
+
   @objc(findMax:resolver:rejecter:)
   func findMax(numbers: [Double], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
     if numbers.isEmpty {
@@ -458,7 +453,7 @@ class CustomSwiftModule: NSObject {
             reject("no_data", "Array is empty", error)
             return
     }
-    
+
     // 获取最大值
         if let maxVal = numbers.max() {
           resolve(maxVal) // 返回给 RN
@@ -476,6 +471,7 @@ class CustomSwiftModule: NSObject {
 
 
 ```
+
 </div>
 
 <p>在AppDelegate的目录下添加CustomSwiftModule.m</p>
@@ -504,6 +500,139 @@ RCT_EXTERN_METHOD(findMax:(NSArray *)numbers
 
 @end
 
+```
+
+</div>
+
+#### <a name="message">🚀 ios和rn的消息传递</a>
+
+<p>在AppDelegate的目录下添加MyEventEmitter.swift</p>
+
+<div class="small-code">
+
+```swift
+import Foundation
+import React
+
+// 暴漏给rn的事件名
+@objc(MyEventEmitter)
+class MyEventEmitter: RCTEventEmitter {
+  private var hasListeners = false
+  private var timer: Timer?
+
+  override func supportedEvents() -> [String]! {
+    return ["onDeviceFound"]
+  }
+
+  // 这个函数一开始就会调用
+  override func startObserving() {
+    hasListeners = true
+
+    // ⭐️ 模拟真实场景：一旦前端开始监听，原生立刻开启一个定时器，每 3 秒发一次数据
+    DispatchQueue.main.async {
+      self.timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
+        // 定时器触发时，调用发送事件的方法
+        self.sendAutoEvent()
+      }
+    }
+  }
+
+  override func stopObserving() {
+    hasListeners = false
+    // 停止定时器，节省性能
+    timer?.invalidate()
+    timer = nil
+  }
+
+  /// 原生内部发送事件的方法（不需要暴露给 JS）
+  private func sendAutoEvent() {
+    if hasListeners {
+      // 生成一个随机数模拟设备 ID
+      let randomId = Int.random(in: 1000 ... 9999)
+
+      sendEvent(withName: "onDeviceFound", body: [
+        "name": "未知设备_\(randomId)",
+        "status": "扫描中...",
+        "timestamp": Date().timeIntervalSince1970
+      ])
+    }
+  }
+
+  // rn可以调用的 需要在.m文件声明
+  @objc
+  func simulateNativeEvent(_ deviceName: String) {
+    // 检查是否有监听器，避免不必要的资源浪费
+    if hasListeners {
+      // 使用 sendEvent 发送事件
+      // withName: 必须是 supportedEvents 里定义过的名字
+      // body: 可以是 String, Array, Dictionary (对应 JS 的对象)
+      sendEvent(withName: "onDeviceFound", body: [
+        "name": deviceName,
+        "status": "connected",
+        "timestamp": Date().timeIntervalSince1970
+      ])
+    }
+  }
+
+  @objc override class func requiresMainQueueSetup() -> Bool {
+    return true // 因为用到了 Timer，最好在主线程初始化
+  }
+}
+
+
+```
+
+</div>
+
+<p>在AppDelegate的目录下添加.文件</p>
+
+<div class="small-code">
+
+```objc
+// MyEventEmitter.m
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h> // 引入 EventEmitter 的头文件
+
+// 注意这里：第二个参数变成了 RCTEventEmitter，而不是 NSObject
+@interface RCT_EXTERN_MODULE(MyEventEmitter, RCTEventEmitter)
+
+// 暴露我们刚刚写的用来模拟触发事件的方法
+RCT_EXTERN_METHOD(simulateNativeEvent:(NSString *)deviceName)
+
+@end
+
+```
+
+</div>
+
+<p>接下来前端rn调用</p>
+
+<div class="small-code">
+
+```js
+import { NativeEventEmitter, NativeModules } from 'react-native';
+
+const { MyEventEmitter } = NativeModules;
+const eventEmitter = new NativeEventEmitter(MyEventEmitter);
+
+useEffect(() => {
+  // 3. 注册监听器 ('onDeviceFound' 必须和 Swift 里 supportedEvents 返回的名字一模一样)
+  const subscription = eventEmitter.addListener('onDeviceFound', (event) => {
+    console.log('收到原生发来的事件！', event);
+    // event 就是 Swift 里传过来的 body 字典
+  });
+
+  // 4. 组件卸载时，必须移除监听器，防止内存泄漏！
+  return () => {
+    subscription.remove();
+  };
+});
+
+// ⭐️ 这里就是触发的方法：前端调用原生，让原生发射事件
+const handleStartScan = () => {
+  // 调用 Swift 暴露出来的 simulateNativeEvent 方法
+  MyEventEmitter.simulateNativeEvent('AirPods Pro');
+};
 ```
 
 </div>
